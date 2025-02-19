@@ -44,6 +44,17 @@ Note: These notebooks utilize functions from the src/ directory.
 Each participant's data will be stored in CSV format with the following naming convention:
 `participantID_Pref__trialNb.csv`
 
+## eLabFTW Integration
+
+The codebas includes optional integration with eLabFTW through its API. This functionality allows direct data transfer to eLabFTW but is not required to run the experiment. To disable this feature, simply remove the `api.elab.py` file and the related function calls in the notebooks.
+
+If you wish to use the eLabFTW integration:
+
+1. Create a `.env` file in the root directory
+2. Add the following variables to the `.env` file:
+	- `ELAB_API_KEY`: Your eLabFTW API key
+	- `ELAB_API_URL`: Your eLabFTW instance URL
+
 ## Contact
 
 For questions about the experiment or codebase, please contact [Your Contact Information]

@@ -2,7 +2,6 @@ import time
 import json
 import numpy as np
 import elabapi_python as elabapi
-from elabapi_python.rest import ApiException
 from dotenv import load_dotenv
 import os
 

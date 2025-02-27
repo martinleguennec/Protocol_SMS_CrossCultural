@@ -1,9 +1,5 @@
 import numpy as np
 
-arr = [0, 2, 4, 1, 3, 5, 7]
-print(arr)
-
-
 def moving_average(data, window, boundary='default'):
     """
     Compute the moving average of a 1D array with flexible window size and boundary handling.

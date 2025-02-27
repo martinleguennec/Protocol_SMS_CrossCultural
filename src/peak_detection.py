@@ -5,9 +5,38 @@ This script detects and validates peaks in movement data, specifically to identi
 in a sensorimotor synchronization task. It handles irregular movements at low frequencies and ensures robustness against
 movements with multiple local maxima.
 
-Date of Creation: 2024-11-21
 Author: Martin Le Guennec
 Email: martin.le-guennec@umontpellier.fr
+
+Versions
+---------
+2024-11-21: v1.0.0. 
+    First version of the script.
+2025-02-26: v1.1.1.
+    identify_peak_flexion
+        - Corrected minor bug in the detection of the first peak flexion.
+        - Suppressed the first peak before returning the detected peaks.
+    plot_peak_on_movement
+        - Added vertical lines for the stimuli and plateau beginning and ending.
+        - Added a parameter for the figure size.
+2025-02-27: v1.2.0.
+    Added two functions:
+        - get_custom_parameters, which retrieves custom peak detection parameters for a given file name.
+        - identify_peaks_with_custom_parameters, which retrieves custom parameters and calls identify_peak_flexion.
+
+Functions
+---------
+extract_and_normalize_movement(movement, start, end, stim_freq, fs=5000)
+    Extract and normalize movement data between a start and end index.
+plot_peak_on_movement(movement, detected_peaks, stim_onset, plateaus, fs=5000, figure_size=(14, 5))
+    Plot detected peaks on the movement signal.
+identify_peak_flexion(movement, stim_onset, plateaus, task, fs=5000, peak_threshold=50, min_velocity_sum=60, frequency_threshold=7.3, debugging=False, plot_verif=False, figure_size=(14, 5))
+    Identify peak flexion moments in movement data.
+get_custom_parameters(file_name)
+    Retrieve custom peak detection parameters for a given file name.
+identify_peaks_with_custom_parameters(file_name, movement, stim_onset, plateaus, task, fs=5000, debugging=False, plot_verif=False, figure_size=(14, 5))
+    Wrapper function that retrieves custom parameters (if available) and calls identify_peak_flexion.
+
 
 Notes
 -----
@@ -19,11 +48,15 @@ The different thresholds used in this function were determined empirically based
 data. They may need to be adjusted for different datasets.
 """
 
-import numpy as np
-from scipy.signal import find_peaks
-from matplotlib import pyplot as plt
+
 import warnings
 
+from matplotlib import pyplot as plt
+import numpy as np
+import pandas as pd
+from scipy.signal import find_peaks
+
+# from config import path_base
 from src.utils import moving_average
 
 def extract_and_normalize_movement(movement, start, end, stim_freq, fs=5000):
@@ -62,11 +95,18 @@ def extract_and_normalize_movement(movement, start, end, stim_freq, fs=5000):
     return movement_normalized
 
 
-def plot_peak_on_movement(movement, detected_peaks, fs=5000):
-    plt.figure()
+def plot_peak_on_movement(movement, detected_peaks, stim_onset, plateaus, fs=5000, figure_size=(14, 5)):
+    plt.figure(figsize=figure_size)
     t = np.arange(len(movement)) / fs
     plt.plot(t, movement, 'k')
     plt.plot(t[detected_peaks], movement[detected_peaks], 'ro')
+
+    for onset in stim_onset:
+        plt.axvline(onset / fs, color='b', alpha=0.5)
+    for (beg, end) in plateaus:
+        plt.axvline(stim_onset[beg] / fs, color='g', linewidth=2)
+        plt.axvline(stim_onset[end] / fs, color='orange', linewidth=2)
+
     plt.xlabel('Time (s)')
     plt.ylabel('Normalized Movement')
     plt.title('Detected Peaks on Movement Signal')
@@ -77,12 +117,14 @@ def identify_peak_flexion(
     movement, 
     stim_onset, 
     plateaus, 
+    task,
     fs=5000, 
     peak_threshold=50, 
     min_velocity_sum=60, 
     frequency_threshold=7.3, 
     debugging=False, 
-    plot_verif=False
+    plot_verif=False,
+    figure_size=(14, 5)
 ):
     """
     Identify peak flexion moments in movement data.
@@ -114,6 +156,8 @@ def identify_peak_flexion(
         Whether to print debugging information. Default is False.
     plot_verif : bool, optional
         Whether to plot the detected peaks on the movement signal. Default is False.
+    figure_size : tuple, optional
+        Size of the figure when plotting the detected peaks. Default is (14, 5).
 
     Returns
     -------
@@ -129,11 +173,10 @@ def identify_peak_flexion(
 
     for plateau_idx in range(len(plateaus)):
 
-        # Calculate stimulus frequency for the current plateau.
-        # If there is no stimulus (preferred frequency measurement), set the frequency to 2 Hz by default.
+        # Calculate stimulus frequency for the current plateau. If there are no stimuli, set the frequency to 2 Hz.
         # This approximates a typical movement frequency for this task. Having a frequency close to that of the movement
         # is necessary for correct normalization of the movement.
-        if plateaus[plateau_idx, 1] - plateaus[plateau_idx, 0] == 1:
+        if (task=='pref_sync_pref' and plateau_idx in [0, 2]) or (task=='conti' and plateau_idx == 1) or (task=='pref'):
             stim_freq = 2
         else: 
             stim_freq = fs / np.mean(np.diff(stim_onset[plateaus[plateau_idx, 0]:plateaus[plateau_idx, 1]]))
@@ -160,7 +203,7 @@ def identify_peak_flexion(
 
             # For the first plateau, we consider that the first peak flexion is the first detected peak.
             if plateau_idx == 0:
-                valid_peaks.append(initial_peaks[0])
+                valid_peaks.append(int(initial_peaks[0]))
                 first_peak_idx = 1
 
             # For the other plateaus, calculate the total amount of movement between the last detected peak for the
@@ -180,10 +223,10 @@ def identify_peak_flexion(
                     first_peak_idx += 1
                     temp_end = initial_peaks[first_peak_idx] + plateau_start - last_peak_idx
 
-                    if peak_idx >= len(initial_peaks):
+                    if first_peak_idx >= len(initial_peaks):
                         break
 
-                valid_peaks.append(initial_peaks[first_peak_idx])
+                valid_peaks.append(int(initial_peaks[first_peak_idx]))
 
             # Validate the other peaks by checking the total movement between them.
             for peak_idx in range(1, len(initial_peaks)):
@@ -194,7 +237,7 @@ def identify_peak_flexion(
                 velocity_sum = np.sum(np.abs(velocity))
 
                 if velocity_sum > min_velocity_sum:
-                    valid_peaks.append(current_peak)
+                    valid_peaks.append(int(current_peak))
             
             # Update the last peak index for the next plateau
             last_peak_idx = valid_peaks[-1] + plateau_start
@@ -212,9 +255,112 @@ def identify_peak_flexion(
             print("        Done!")
         
     # Remove duplicates
-    detected_peaks = np.unique(detected_peaks)
+    detected_peaks = np.unique(detected_peaks[1:])
 
     if plot_verif:
-        plot_peak_on_movement(movement, detected_peaks, fs)
+        plot_peak_on_movement(movement, detected_peaks, stim_onset, plateaus, figure_size=figure_size)
         
     return detected_peaks
+
+def get_custom_parameters(file_name):
+    """
+    Retrieve custom peak detection parameters for a given file name.
+
+    Parameters
+    ----------
+    file_name : str
+        The identifier for the file.
+    custom_params_df : pandas.DataFrame
+        DataFrame containing custom parameters indexed by file names.
+
+    Returns
+    -------
+    dict or None
+        Custom parameters as a dictionary if available, otherwise None.
+    """
+    # Load csv file with the custom parameters for peak_detection
+    custom_params_path = path_base / 'specific_parameters.csv'
+    custom_params_df = pd.read_csv(custom_params_path, index_col=0)
+
+
+    try:
+        matching_row = custom_params_df.loc[file_name]
+    except KeyError:
+        return None
+
+    if isinstance(matching_row, pd.Series):
+        return matching_row.to_dict()
+
+    return None
+
+
+def identify_peaks_with_custom_parameters(
+    file_name, 
+    movement, 
+    stim_onset, 
+    plateaus, 
+    task,
+    fs=5000, 
+    debugging=False, 
+    plot_verif=False, 
+    figure_size=(14, 5)
+):
+    """
+    Wrapper function that retrieves custom parameters (if available) and calls identify_peak_flexion.
+    
+    Parameters
+    ----------
+    file_name : str
+        The identifier for the file.
+    movement : array
+        The movement signal (e.g., filtered goniometer data).
+    stim_onset : array
+        Indices of stimulus onset times.
+    plateaus : array
+        Plateau start and end indices as (start, end) pairs.
+    task : str
+        Task identifier.
+    fs : int, optional
+        Sampling frequency in Hz. Default is 5000.
+    debugging : bool, optional
+        Whether to print debugging information. Default is False.
+    plot_verif : bool, optional
+        Whether to plot the detected peaks on the movement signal. Default is False.
+    figure_size : tuple, optional
+        Size of the figure when plotting the detected peaks. Default is (14, 5).
+    
+    Returns
+    -------
+    array
+        Detected peak indices.
+    """
+    print(f"Current file: {file_name}")
+
+    custom_parameters = get_custom_parameters(file_name)
+    
+    if custom_parameters:
+        print("Using custom parameters for peak detection")
+        return identify_peak_flexion(
+            movement, 
+            stim_onset, 
+            plateaus, 
+            task,
+            fs=fs,
+            peak_threshold=custom_parameters.get('peak_threshold', 50),
+            min_velocity_sum=custom_parameters.get('min_velocity_sum', 60),
+            frequency_threshold=custom_parameters.get('frequency_threshold', 7.3),
+            debugging=debugging,
+            plot_verif=plot_verif,
+            figure_size=figure_size
+        )
+    else:
+        return identify_peak_flexion(
+            movement, 
+            stim_onset, 
+            plateaus, 
+            task,
+            fs=fs,
+            debugging=debugging,
+            plot_verif=plot_verif,
+            figure_size=figure_size
+        )

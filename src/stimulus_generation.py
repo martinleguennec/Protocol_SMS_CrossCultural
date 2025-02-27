@@ -119,7 +119,7 @@ def generate_iois(
         initial_ioi = 1000 / frequencies[0]
         initial_stim_duration = 3 * initial_ioi
         silence_after_initial_stim = max(0, (silence_beg) - initial_stim_duration)
-        ioi_list = [initial_ioi * 2] + [initial_ioi] * 2 + [silence_after_initial_stim]
+        ioi_list = [1000] + [initial_ioi] * 2 + [silence_after_initial_stim]
 
         # Stimuli at the modified frequency
         ioi_list.extend([1000 / frequencies[1]] * n_stimuli_per_plateau)

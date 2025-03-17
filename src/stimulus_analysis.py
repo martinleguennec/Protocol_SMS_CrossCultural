@@ -45,7 +45,7 @@ def load_and_preprocess(file_path, fs=5000, cutoff=20, order=4):
 
     return t, mov, sound
 
-def detect_stimuli(sound, task="synchro", fs=5000, plot_verif=False):
+def detect_stimuli(sound, task="synch", fs=5000, plot_verif=False):
     """
     Detect stimulus onset from the sound signal.
 
@@ -53,7 +53,7 @@ def detect_stimuli(sound, task="synchro", fs=5000, plot_verif=False):
     ----------
     sound : array
         Sound signal.
-    task : {'synchro', 'adapt', 'pref'}, optional
+    task : {'synch', 'adapt', 'SMT'}, optional
         Task type. Default is 'synchro'.
     fs : int, optional
         Sampling frequency in Hz. Default is 5000.
@@ -110,7 +110,7 @@ def detect_stimuli(sound, task="synchro", fs=5000, plot_verif=False):
 
         frequencies = np.round(1/np.mean(np.diff(stim_onset[1:len(stim_onset)-1])),1) / fs
     
-    elif task == "pref":
+    elif task == "SMT":
         plateaus = np.array([[0,1]])
 
         frequencies = [1]

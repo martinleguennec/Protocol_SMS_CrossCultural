@@ -144,6 +144,8 @@ def identify_peak_flexion(
         Indices of stimulus onset times.
     plateaus : array
         Plateau start and end indices as (start, end) pairs.
+    task : str
+        Task identifier.
     fs : int, optional
         Sampling frequency in Hz. Default is 5000.
     peak_threshold : float, optional
@@ -176,7 +178,7 @@ def identify_peak_flexion(
         # Calculate stimulus frequency for the current plateau. If there are no stimuli, set the frequency to 2 Hz.
         # This approximates a typical movement frequency for this task. Having a frequency close to that of the movement
         # is necessary for correct normalization of the movement.
-        if (task=='pref_sync_pref' and plateau_idx in [0, 2]) or (task=='conti' and plateau_idx == 1) or (task=='pref'):
+        if (task=='adapt' and plateau_idx in [0, 2]) or (task=='conti' and plateau_idx == 1) or (task=='SMT'):
             stim_freq = 2
         else: 
             stim_freq = fs / np.mean(np.diff(stim_onset[plateaus[plateau_idx, 0]:plateaus[plateau_idx, 1]]))
@@ -262,6 +264,7 @@ def identify_peak_flexion(
         
     return detected_peaks
 
+
 def get_custom_parameters(file_name):
     """
     Retrieve custom peak detection parameters for a given file name.
@@ -279,6 +282,7 @@ def get_custom_parameters(file_name):
         Custom parameters as a dictionary if available, otherwise None.
     """
     # Load csv file with the custom parameters for peak_detection
+    path_base = []  # Set to none because the path is not needed for that repository
     custom_params_path = path_base / 'specific_parameters.csv'
     custom_params_df = pd.read_csv(custom_params_path, index_col=0)
 

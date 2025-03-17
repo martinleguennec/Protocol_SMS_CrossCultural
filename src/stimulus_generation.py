@@ -6,10 +6,9 @@ This module provides functions to generate inter-onset intervals (IOIs), create 
 full stimulus sequence for experimental tasks.
 
 The three tasks supported:
-- **"pref_sync_pref"**: A reminder of the preferred frequency (3 stimuli), followed by isochronous stimuli at an 
-    adjusted frequency, and a final silence period.
-- **"continuation"**: Isochronous stimuli for a fixed duration followed by silence.
-- **"synchro"**: A sequence of stimuli with frequency plateaus.
+- **"adapt"**: A reminder of the SMT (3 stimuli) followed by a silence period; isochronous stimuli at an adjusted frequency; and a final silence period.
+- **"conti"**: Isochronous stimuli for a fixed duration followed by silence.
+- **"synch"**: A sequence of stimuli with frequency plateaus.
 
 Functions:
 ----------
@@ -24,13 +23,13 @@ Functions:
 
 Example Usage:
 --------------
-# Task 1: "pref_sync_pref" (Preferred frequency reminder, sync, then silence)
+# Task 1: "adapt" (Preferred frequency reminder, sync, then silence)
 preferred_freq = 2  # Hz
 sync_freq = preferred_freq * 1.3  # Adjusted by +30%
 ioi_list = generate_iois(
     frequencies=[preferred_freq, sync_freq], 
     n_stimuli_per_plateau=20, 
-    task="pref_sync_pref",
+    task="adapt",
     silence_around_stim=[0, 30]
 )
 stimuli = generate_stimuli(ioi_list)
@@ -40,7 +39,7 @@ sequence = create_sequence(ioi_list, stimuli)
 ioi_list = generate_iois(
     frequencies=[3], 
     n_stimuli_per_plateau=20, 
-    task="continuation",
+    task="contin",
     silence_around_stim=40
 )
 stimuli = generate_stimuli(ioi_list)
@@ -52,7 +51,7 @@ ioi_list = generate_iois(
     frequencies=frequencies,
     n_stimuli_per_plateau=15,
     n_stimuli_first_plateau=20,
-    task="synchro"
+    task="synch"
 )
 stimuli = generate_stimuli(ioi_list)
 sequence = create_sequence(ioi_list, stimuli)
@@ -74,12 +73,12 @@ def generate_iois(
     Parameters
     ----------
     frequencies : list
-        List of frequencies in Hz. If the task is 'pref_sync_pref', 2 frequencies must be provided. If the task is
-        'continuation', 1 frequency must be provided. If the task is 'synchro', any number of frequencies can be provided.
+        List of frequencies in Hz. If the task is 'adapt', 2 frequencies must be provided. If the task is 'conti', 1 
+        frequency must be provided. If the task is 'synch', any number of frequencies can be provided.
     n_stimuli_per_plateau : int
         Number of stimuli per plateau.
     task : str
-        Task to generate IOIs for. Must be 'pref_sync_pref', 'continuation', or 'synchro'.
+        Task to generate IOIs for. Must be 'adapt', 'conti', or 'synch'.
     n_stimuli_first_plateau : int, optional
         Number of stimuli in the first plateau. Only used for 'synchro' task. If None is provided, the same number of 
         stimuli as n_stimuli_per_plateau is used.
@@ -110,10 +109,10 @@ def generate_iois(
         raise TypeError("silence_around_stim must be None, an int, or a list/tuple.")
 
 
-    if task == "pref_sync_pref":
+    if task == "adapt":
         # 2 frequencies should be provided
         if len(frequencies) != 2:
-            raise ValueError("For task 'pref_sync_pref', 2 frequencies must be provided.")
+            raise ValueError("For task 'adapt', 2 frequencies must be provided.")
         
         # 3 stimuli at the preferred frequency + silence of remainder 20s
         initial_ioi = 1000 / frequencies[0]
@@ -127,17 +126,17 @@ def generate_iois(
         # Silence at the end
         ioi_list.append(silence_end)
     
-    elif task == "continuation":
+    elif task == "conti":
         # 1 frequency should be provided
         if len(frequencies) != 1:
-            raise ValueError("For task 'continuation', 1 frequency must be provided.")
+            raise ValueError("For task 'conti', 1 frequency must be provided.")
         
         # Generate IOI list
         ioi_list = [silence_beg]
         ioi_list.extend([1000 / frequencies[0]] * n_stimuli_per_plateau)
         ioi_list.append(silence_end)
 
-    elif task == "synchro":
+    elif task == "synch":
         # If n_stimuli_first_plateau is not provided, use n_stimuli_per_plateau
         n_stimuli_first_plateau = n_stimuli_per_plateau if n_stimuli_first_plateau is None else n_stimuli_first_plateau
 
@@ -151,7 +150,7 @@ def generate_iois(
         ioi_list.append(silence_end)
 
     else:
-        raise ValueError("Invalid task. Must be 'pref_sync_pref', 'continuation', or 'synchro'.")
+        raise ValueError("Invalid task. Must be 'adapt', 'conti', or 'synch'.")
        
 
     return ioi_list

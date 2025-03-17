@@ -1,8 +1,4 @@
 # Protocol_SMS_CrossCultural_2025
- 
- ## TO DO
- 
- - [ ] Create a file with the required libraries
 
 This repository contains the experimental code used to investigate sensorimotor synchronization mechanisms of frequency adaptation, comparing French and Indian participants.
 
@@ -10,8 +6,21 @@ This repository contains the experimental code used to investigate sensorimotor 
 
 The project is organized into the following directories:
 
+```bash
+/data
+    └── participant_id/
+          └── participantID_SMT__trialNb.csv
+/src
+    └── [Python source files with experimental functions]
+/notebooks
+    ├── randomization.ipynb          # Randomizes experimental conditions
+    ├── calculate_preferred_freq.ipynb  # Processes CSV files to compute preferred frequencies
+    └── generate_stimuli.ipynb       # Generates stimuli based on experimental parameters
+requirements.txt                    # Lists required Python libraries
+```
+
 ### data/
-Contains participant csv files of the preferred frequency measurements. Each participant should have their own subdirectory.
+Contains participant csv files of the spontaneous motor tempo measurements. Each participant should have their own subdirectory.
 
 Expected file naming convention:
 - `participantID_Pref__trialNb.csv`
@@ -32,29 +41,44 @@ Note: These notebooks utilize functions from the src/ directory.
 
 ## Getting Started
 
-1. Ensure you have all required dependencies installed
-2. Create a participant folder in the data directory for each new participant
-3. Execute the notebooks in the following order:
-   - Randomization
-   - Preferred Frequency Calculator
-   - Stimuli Generator
+### Python configuration
 
-## Data Structure
+1. **Create a Virtual Environment**
+   It is recommanded to create a virtual environment to manage libraries. Run the following command based on your operating system:
 
-Each participant's data will be stored in CSV format with the following naming convention:
-`participantID_Pref__trialNb.csv`
+   ```python
+   # macOS/Linux
+   python3 -m venv .venv
 
-## eLabFTW Integration
+   # Windows
+   python -m venv .venv
+   ```
 
-The codebas includes optional integration with eLabFTW through its API. This functionality allows direct data transfer to eLabFTW but is not required to run the experiment. To disable this feature, simply remove the `api.elab.py` file and the related function calls in the notebooks.
+2. **Activate the Virtual Environment
 
-If you wish to use the eLabFTW integration:
+   ```python
+   # macOS/Linux
+   source .venv/bin/activate
 
-1. Create a `.env` file in the root directory
-2. Add the following variables to the `.env` file:
-	- `ELAB_API_KEY`: Your eLabFTW API key
-	- `ELAB_API_URL`: Your eLabFTW instance URL
+   # Window
+   .venv/Scripts/activate
+   ```
+
+3. **Install Required Libraries**
+   With the virtual environment activated, install all dependencies using the `requirements.txt`file:
+
+   ```python
+   pip install -r requirements.txt
+   ```
+
+
+### Running the experiment
+
+1. **Data Setup**
+   For each new participant, create a folder inside the `data/` directory and save their csv files using the naming convention `participantID_SMT__trialNb.csv`.
+2. **Execute the Notebooks in Order**
+
 
 ## Contact
 
-For questions about the experiment or codebase, please contact [Your Contact Information]
+For questions about the experiment or codebase, please contact martin.le-guennec@umontpellier.fr

@@ -1,3 +1,4 @@
+import csv
 import warnings
 
 import pandas as pd
@@ -29,8 +30,16 @@ def load_and_preprocess(file_path, fs=5000, cutoff=20, order=4):
     sound : array
         Sound signal.
     """
+
+    # Identify the symbol used for decimal
+    with open(file_path, "r") as file:
+        csv_file = csv.reader(file)
+        for line_idx, line in enumerate(csv_file):
+            if line_idx == 1:
+                decimal_symbol = str.split(line[0],";")[1][1]
+
     # Load the data
-    data = pd.read_csv(file_path, delimiter=';', decimal=',', skiprows=3)
+    data = pd.read_csv(file_path, delimiter=';', decimal=decimal_symbol, skiprows=3)
     data.columns = ['time', 'goniometer', 'time_2', 'stimulus']
     data = data.drop(columns=['time_2'])
 

@@ -13,10 +13,10 @@ The project is organized into the following directories:
 /src
     └── [Python source files with experimental functions]
 /notebooks
-    ├── randomization.ipynb          # Randomizes experimental conditions
+    ├── randomization.ipynb             # Randomizes experimental conditions
     ├── calculate_preferred_freq.ipynb  # Processes CSV files to compute preferred frequencies
-    └── generate_stimuli.ipynb       # Generates stimuli based on experimental parameters
-requirements.txt                    # Lists required Python libraries
+    └── generate_stimuli.ipynb          # Generates stimuli based on experimental parameters
+requirements.txt                        # Lists required Python libraries
 ```
 
 ### data/
@@ -25,7 +25,9 @@ Contains participant csv files of the spontaneous motor tempo measurements. Each
 Expected file naming convention:
 - `participantID_Pref__trialNb.csv`
 
-Note: The data directory is initially empty. Create individual participant folders as you conduct the experiment.
+`trialNb` goes from 1 to 5, since each participant should perform 5 SMT trials.
+
+> Note: The data directory is initially empty. Create individual participant folders as you conduct the experiment.
 
 ### src/
 Contains Python source files with functions used throughout the experiment. These functions support various experimental tasks and data collection processes.
@@ -54,7 +56,7 @@ Note: These notebooks utilize functions from the src/ directory.
    python -m venv .venv
    ```
 
-2. **Activate the Virtual Environment
+2. **Activate the Virtual Environment**
 
    ```python
    # macOS/Linux
@@ -65,7 +67,8 @@ Note: These notebooks utilize functions from the src/ directory.
    ```
 
 3. **Install Required Libraries**
-   With the virtual environment activated, install all dependencies using the `requirements.txt`file:
+   
+   With the virtual environment activated, install all dependencies using the `requirements.txt` file:
 
    ```python
    pip install -r requirements.txt
